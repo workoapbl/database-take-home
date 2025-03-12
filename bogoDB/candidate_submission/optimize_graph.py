@@ -145,18 +145,18 @@ def optimize_graph(
 
     upper_threshold = calc_threshold(0.01)
     lower_threshold = calc_threshold(0.1)
-    print(lower_threshold, upper_threshold)
+
     for node in optimized_graph:
         optimized_graph[node] = {}
         node_val = int(node)
         if node_val < lower_threshold:
-            optimized_graph[node][str(node_val+1)] = 1
+            optimized_graph[node][str(node_val+1)] = 1 # add sequential edge
         elif node_val < upper_threshold:
-            optimized_graph[node][str(node_val+1)] = exponential_pdf(node_val+1)
+            optimized_graph[node][str(node_val+1)] = exponential_pdf(node_val+1) 
             if node_val % 5 == 0:
-                optimized_graph[node]['0'] = 0.5 * exponential_pdf(0)
+                optimized_graph[node]['0'] = 0.5 * exponential_pdf(0) # jump back to 0 
             if node_val % 3 == 0:
-                optimized_graph[node][str(node_val - 2)] = 0.5 * exponential_pdf(node_val - 2)
+                optimized_graph[node][str(node_val - 2)] = 0.5 * exponential_pdf(node_val - 2) # jump back by 2
         elif node_val < 450:
             optimized_graph[node]['0'] = 0.7
             optimized_graph[node][str(lower_threshold)] = 0.3
