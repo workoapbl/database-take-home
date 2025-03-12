@@ -127,36 +127,29 @@ def optimize_graph(
     # sophisticated strategy based on query analysis!
     # ---------------------------------------------------------------
 
-    # Count total edges in the initial graph
-    total_edges = sum(len(edges) for edges in optimized_graph.values())
-
-    # If we exceed the limit, we need to prune edges
-    if total_edges > max_total_edges:
-        print(
-            f"Initial graph has {total_edges} edges, need to remove {total_edges - max_total_edges}"
-        )
-
-        # Example pruning logic (replace with your optimized strategy)
-        edges_to_remove = total_edges - max_total_edges
-        removed = 0
-
-        # Sort nodes by number of outgoing edges (descending)
-        nodes_by_edge_count = sorted(
-            optimized_graph.keys(), key=lambda n: len(optimized_graph[n]), reverse=True
-        )
-
-        # Remove edges from nodes with the most connections first
-        for node in nodes_by_edge_count:
-            if removed >= edges_to_remove:
-                break
-
-            # As a simplistic example, remove the edge with lowest weight
-            if len(optimized_graph[node]) > 1:  # Ensure node keeps at least one edge
-                # Find edge with minimum weight
-                min_edge = min(optimized_graph[node].items(), key=lambda x: x[1])
-                del optimized_graph[node][min_edge[0]]
-                removed += 1
-
+    param = 0.1
+    def exponential_pdf(x):
+        return param * np.exp(-param * x)
+    
+    for node in optimized_graph:
+        optimized_graph[node] = {}
+        node_val = int(node)
+        if node_val < 15:
+            optimized_graph[node][str(node_val+1)] = 1
+        elif node_val == 15:
+            optimized_graph[node]['16'] = 1
+            optimized_graph[node]['20'] = 1
+        elif node_val < 50:
+            optimized_graph[node][str(node_val+1)] = exponential_pdf(node_val+1)
+            optimized_graph[node][str(node_val-1)] = 0.5 * exponential_pdf(node_val-1)
+            optimized_graph[node]['0'] = 0.5 * exponential_pdf(0)
+        elif node_val < 450:
+            optimized_graph[node]['0'] = 0.75
+            optimized_graph[node]['15'] = 0.25
+        else:
+            random_leap = max(int(np.random.exponential(scale=1/param, size=1)[0]), 15)
+            random_leap = 0
+            optimized_graph[node][str(random_leap)] = 1
     # =============================================================
     # End of your implementation
     # =============================================================
