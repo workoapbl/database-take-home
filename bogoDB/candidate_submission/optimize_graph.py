@@ -127,29 +127,41 @@ def optimize_graph(
     # sophisticated strategy based on query analysis!
     # ---------------------------------------------------------------
 
-    param = 0.1
+   # estimate lambda of exponential parameter using MLE
+    def estimate_lambda(samples):
+        return len(samples)/sum(samples)
+
+    # get previous query targets from results
+    prev_targets = [results['detailed_results'][n]['target'] for n in range(len(results['detailed_results']))]
+    param = estimate_lambda(prev_targets)
+
+
     def exponential_pdf(x):
         return param * np.exp(-param * x)
-    
+
+    # calculates threshold where alpha portion of potential queries are above the threshold
+    def calc_threshold(alpha):
+        return int(-np.log(alpha) / param)
+
+    upper_threshold = calc_threshold(0.01)
+    lower_threshold = calc_threshold(0.1)
+    print(lower_threshold, upper_threshold)
     for node in optimized_graph:
         optimized_graph[node] = {}
         node_val = int(node)
-        if node_val < 15:
+        if node_val < lower_threshold:
             optimized_graph[node][str(node_val+1)] = 1
-        elif node_val == 15:
-            optimized_graph[node]['16'] = 1
-            optimized_graph[node]['20'] = 1
-        elif node_val < 50:
+        elif node_val < upper_threshold:
             optimized_graph[node][str(node_val+1)] = exponential_pdf(node_val+1)
-            optimized_graph[node][str(node_val-1)] = 0.5 * exponential_pdf(node_val-1)
-            optimized_graph[node]['0'] = 0.5 * exponential_pdf(0)
+            if node_val % 5 == 0:
+                optimized_graph[node]['0'] = 0.5 * exponential_pdf(0)
+            if node_val % 3 == 0:
+                optimized_graph[node][str(node_val - 2)] = 0.5 * exponential_pdf(node_val - 2)
         elif node_val < 450:
-            optimized_graph[node]['0'] = 0.75
-            optimized_graph[node]['15'] = 0.25
+            optimized_graph[node]['0'] = 0.7
+            optimized_graph[node][str(lower_threshold)] = 0.3
         else:
-            random_leap = max(int(np.random.exponential(scale=1/param, size=1)[0]), 15)
-            random_leap = 0
-            optimized_graph[node][str(random_leap)] = 1
+            optimized_graph[node]['0'] = 1
     # =============================================================
     # End of your implementation
     # =============================================================
